@@ -199,7 +199,7 @@ Welcome to the APDS Banking Platform, a **Secure Transaction Management System**
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-repo/apds-banking.git
+   git clone [https://github.com/your-repo/apds-banking.git](https://github.com/Dillon-Duncan/APDS_Banking.git)
    cd apds-banking
    ```
 2. **Server Setup**:
@@ -508,8 +508,6 @@ The following are common endpoints (a full specification can be found in `/docum
 | `/api/transaction`       | POST   | Create a new transaction        | User          |
 | `/api/transaction/admin` | GET    | Get pending transactions        | Admin         |
 
-**Please review** the full YAML file for request/response schemas, error codes, and advanced usage.
-
 ---
 
 ## 8. Auditing & Monitoring
@@ -544,5 +542,3 @@ const auditLogSchema = new mongoose.Schema({
 });
 
 ---
-
-**© 2025 APDS Banking Platform. All rights reserved.**  

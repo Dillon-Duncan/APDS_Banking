@@ -209,6 +209,10 @@ Welcome to the APDS Banking Platform, a **Secure Transaction Management System**
    cp .env.example .env
    ```
    - Update the newly created `.env` file with your local configuration (e.g., MongoDB connection URI, JWT secret, etc.).
+   - (# Create .env file
+echo "JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('base64'))")" >> .env
+echo "CSRF_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('base64'))")" >> .env
+echo "MONGODB_URI=mongodb://localhost:27017/apds_banking" >> .env)
 
 3. **Client Setup**:
    ```bash
@@ -247,6 +251,10 @@ Welcome to the APDS Banking Platform, a **Secure Transaction Management System**
    The React application will typically be available at `http://localhost:3000`.
 
 ---
+
+# Default admin credentials (from server/src/scripts/admin.js)
+Username: admin
+Password: Admin321?
 
 ## 6. Security Implementation Details
 

@@ -41,7 +41,7 @@ const Signup = () => {
                 account_number: formData.account_number.replace(/[^A-Z0-9]/gi, '')
             };
 
-            const response = await fetch('http://localhost:5000/api/auth/register', {
+            const response = await fetch('http://localhost:5000/api/signup', {
                 method: 'POST',
                 mode: 'cors',
                 headers: {
@@ -50,13 +50,16 @@ const Signup = () => {
                 body: JSON.stringify(sanitizedData)
             });
             
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Signup failed');
-            }
-            
-            await response.json();
-            navigate('/user/login');
+            response.json()
+            .then(data => {
+                if (data.errors) {
+                    setError(data.errors.join(', '));
+                } else if (data.message) {
+                    setError(data.message);
+                } else {
+                    navigate('/user/login');
+                }
+            });
         } catch (error) {
             setError(error.message || 'Failed to connect to server');
         }

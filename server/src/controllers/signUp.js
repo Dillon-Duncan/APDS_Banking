@@ -70,22 +70,13 @@ const passwordPolicy = {
 };
 
 function validatePassword(password) {
-  const validationErrors = [];
-  
-  if (password.length < passwordPolicy.minLength) 
-    validationErrors.push(`Minimum ${passwordPolicy.minLength} characters`);
-  if ((password.match(/[A-Z]/g) || []).length < passwordPolicy.minUppercase)
-    validationErrors.push(`Minimum ${passwordPolicy.minUppercase} uppercase letters`);
-  if ((password.match(/[a-z]/g) || []).length < passwordPolicy.minLowercase)
-    validationErrors.push(`Minimum ${passwordPolicy.minLowercase} lowercase letters`);
-  if ((password.match(/[0-9]/g) || []).length < passwordPolicy.minNumbers)
-    validationErrors.push(`Minimum ${passwordPolicy.minNumbers} numbers`);
-  if ((password.match(/[^A-Za-z0-9]/g) || []).length < passwordPolicy.minSymbols)
-    validationErrors.push(`Minimum ${passwordPolicy.minSymbols} symbols`);
-  if (passwordPolicy.bannedPasswords.includes(password))
-    validationErrors.push('Password is too common');
-
-  return validationErrors;
+    const errors = [];
+    if (password.length < 8) errors.push("Minimum 8 characters");
+    if (!/[A-Z]/.test(password)) errors.push("At least one uppercase letter");
+    if (!/[a-z]/.test(password)) errors.push("At least one lowercase letter");
+    if (!/[0-9]/.test(password)) errors.push("At least one number");
+    if (!/[!@#$%^&*]/.test(password)) errors.push("At least one special character");
+    return errors;
 }
 
 module.exports = { createUser }

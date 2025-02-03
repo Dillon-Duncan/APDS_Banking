@@ -22,7 +22,7 @@ const Dashboard = ({ setIsAuthenticated }) => {
         }
 
         console.log('Fetching user profile with token:', token.substring(0, 20) + '...');
-        const response = await fetch('http://localhost:5000/api/auth/profile', {
+        const response = await fetch('http://localhost:5000/api/profile', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

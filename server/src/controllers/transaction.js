@@ -23,7 +23,7 @@ const validateTransactionInput = [
   }
 ];
 
-const fraudDetection = async (transaction, user) => {
+const fraudDetection = async (req, transaction, user) => {
   const riskFactors = {
     countryRisk: 0,
     amountRisk: 0,
@@ -53,12 +53,14 @@ const fraudDetection = async (transaction, user) => {
   const totalRisk = Object.values(riskFactors).reduce((a, b) => a + b, 0);
   
   await AuditLog.create({
+    eventType: 'fraud_attempt',
     userId: user.id,
-    action: 'fraud_assessment',
-    riskScore: totalRisk,
+    ipAddress: req.ip,
+    outcome: totalRisk < RISK_THRESHOLD ? 'success' : 'failed',
     metadata: {
-      factors: riskFactors,
-      transactionId: transaction._id
+        riskScore: totalRisk,
+        factors: riskFactors,
+        transactionId: transaction._id
     }
   });
 
@@ -186,7 +188,7 @@ async function verifyTransaction(req, res) {
       return res.status(400).json({ message: "Transaction is no longer pending" });
     }
 
-    const fraudCheck = await fraudDetection(transaction, req.user);
+    const fraudCheck = await fraudDetection(req, transaction, req.user);
     if (!fraudCheck.valid) {
       await AuditLog.create({
         eventType: 'fraud_attempt',
@@ -205,9 +207,10 @@ async function verifyTransaction(req, res) {
 
     await transaction.save();
     await AuditLog.create({
+      eventType: 'transaction',
       userId: req.user.id,
-      action: 'fraud_check',
-      outcome: 'passed',
+      ipAddress: req.ip,
+      outcome: 'success',
       metadata: {
         riskScore: fraudCheck.riskScore,
         transactionId: transaction._id

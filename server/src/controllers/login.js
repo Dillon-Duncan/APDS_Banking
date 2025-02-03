@@ -12,11 +12,8 @@ async function login(req, res) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        const existingUser = await User.findOne({
-            $or: [
-                { username: { $regex: new RegExp(`^${username}$`, 'i') } },
-                { email: { $regex: new RegExp(`^${username}$`, 'i') } }
-            ]
+        const existingUser = await User.findOne({ 
+            username: username
         }).select('+password');
 
         if (!existingUser || !(await bcrypt.compare(password, existingUser.password))) {

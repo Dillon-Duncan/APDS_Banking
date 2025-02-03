@@ -195,61 +195,102 @@ Welcome to the APDS Banking Platform, a **Secure Transaction Management System**
 - **MongoDB** 5.0+  
 - **Docker** 20.10+ (optional but recommended for containerized setup)
 
-### Installation
+Below is an updated set of instructions that incorporates both the original steps and the new considerations about creating a `.env` file in the `src` folder and installing `dotenv` if needed.
 
-1. **Clone the repository**:
-   ```bash
-   git clone [https://github.com/your-repo/apds-banking.git](https://github.com/Dillon-Duncan/APDS_Banking.git)
-   cd apds-banking
-   ```
-2. **Server Setup**:
+---
+
+## Installation
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/Dillon-Duncan/APDS_Banking.git
+cd APDS_Banking
+```
+
+### 2. Server Setup
+1. Navigate into the **server** directory:
    ```bash
    cd server
-   npm install
-   cp .env.example .env
    ```
-   - Update the newly created `.env` file with your local configuration (e.g., MongoDB connection URI, JWT secret, etc.).
-   - (# Create .env file
-echo "JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('base64'))")" >> .env
-echo "CSRF_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('base64'))")" >> .env
-echo "MONGODB_URI=mongodb://localhost:27017/apds_banking" >> .env)
+2. Install server dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file to store your environment variables. You can either:
+   - **Copy the example**:
+     ```bash
+     cp .env.example .env
+     ```
+     Then edit the `.env` file to set your variables.
+   - **Or manually create** a `.env` file (often in the `src` folder or the server root—make sure your code references the correct location). The contents should include something like:
+     ```bash
+     JWT_SECRET=your_strong_secret_here
+     CSRF_SECRET=your_strong_secret_here
+     DB_URI=mongodb://localhost:27017/your-db-name
+     PORT=5000
+     ```
+   Make sure your server code is configured to load `.env` from the correct path.
 
-3. **Client Setup**:
+4. If you do **not** have `dotenv` installed, install it now (though it should already be included if you ran `npm install`):
+   ```bash
+   npm install dotenv
+   ```
+
+### 3. Client Setup
+1. Navigate to the **client** directory:
    ```bash
    cd ../client
+   ```
+2. Install client dependencies:
+   ```bash
    npm install
    ```
 
-4. **Generate Secrets** (Optional script for rotating JWT/CSRF secrets):
+### 4. (Optional) Generate/Rotate Secrets
+You can use the provided script to generate or rotate strong secrets for JWT and CSRF:
+
+```bash
+node scripts/secret-rotation.js
+```
+This will output new secrets and prompt a service restart if needed.
+
+---
+
+## Running Locally
+
+### 1. Start MongoDB
+- If you are using Docker Compose:
+  ```bash
+  docker-compose up -d mongodb
+  ```
+- Otherwise, ensure your local MongoDB service is running.
+
+### 2. Run the Server
+1. Navigate back to the **server** directory (if not already there):
    ```bash
-   node scripts/secret-rotation.js
+   cd ../server
    ```
-   This will output new secrets and advise a service restart.
-
-### Running Locally
-
-1. **Start MongoDB**:  
-   If using Docker Compose:
+2. Start the server:
    ```bash
-   docker-compose up -d mongodb
-   ```
-   Or ensure your local MongoDB service is running.
-
-2. **Run the Server**:
-   ```bash
-   cd server
    cd src
    node app.js
    ```
-   This starts the Express server on the specified port (default: `http://localhost:5000`).
+   The server will start on the configured port (default: [http://localhost:5000](http://localhost:5000)).
 
-3. **Run the Client**:
+### 3. Run the Client
+1. Navigate to the **client** directory (if not already there):
    ```bash
-   cd ../client
+   cd ../../client
+   ```
+2. Start the React application:
+   ```bash
    npm start
    ```
-   The React application will typically be available at `http://localhost:3000`.
+   By default, the client runs at [http://localhost:3000](http://localhost:3000).
 
+---
+
+**Note**: Ensure that your `.env` file values match the setup in your server code (e.g., `DB_URI`, `PORT`, etc.) and that the server is indeed loading them (via `dotenv` or another method).
 ---
 
 # Default admin credentials (from server/src/scripts/admin.js)

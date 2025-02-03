@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/theme.css';
 import { NAME_REGEX, ACCOUNT_REGEX } from '../../utils/validations';
+import { sanitizeInput } from '../../utils/sanitize';
 
 const Login = ({ setIsAuthenticated }) => {
-  console.log('Login component initialized');
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
@@ -25,7 +25,6 @@ const Login = ({ setIsAuthenticated }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Input changed: ${name}`);
     setFormData(prevState => ({
       ...prevState,
       [name]: value
@@ -34,26 +33,30 @@ const Login = ({ setIsAuthenticated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Submitting login form:', { ...formData, password: '****' });
-
     try {
-      const sanitizedData = {
-        username: formData.username,
-        account_number: formData.account_number,
-        password: formData.password
-      };
-
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(sanitizedData)
+        body: JSON.stringify({
+          username: sanitizeInput(e.target.username.value),
+          password: e.target.password.value
+        })
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
+        const errorText = await response.text();
+        if (errorText.startsWith('<!DOCTYPE html>')) {
+          throw new Error(`Server error: ${response.statusText}`);
+        }
+        try {
+          const errorData = JSON.parse(errorText);
+          throw new Error(errorData.message);
+        } catch {
+          throw new Error(errorText);
+        }
       }
 
       const data = await response.json();
@@ -61,8 +64,6 @@ const Login = ({ setIsAuthenticated }) => {
 
       if (data.token) {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('userRole', data.user.role);
-        localStorage.setItem('user', JSON.stringify(data.user));
         setIsAuthenticated(true);
         console.log('Login successful, navigating to dashboard');
         
@@ -101,7 +102,7 @@ const Login = ({ setIsAuthenticated }) => {
                       setError('Username must be 2-50 letters');
                     }
                   }}
-                  pattern="[A-Za-zÀ-ÿ '-]{2,50}"
+                  pattern="[A-Za-zÀ-ÿ' \-]{2,50}"
                   required
                 />
               </div>
@@ -143,8 +144,8 @@ const Login = ({ setIsAuthenticated }) => {
               value={formData.password}
               onChange={handleChange}
               minLength="8"
-              onKeyDown={(e) => {
-                if(e.key !== 'Backspace' && (e.key.length > 1 || !/^[\x00-\x7F]$/.test(e.key))) {
+              onKeyPress={(e) => {
+                if(e.key !== 'Backspace' && !/^[\x20-\x7E]$/.test(e.key)) {
                   e.preventDefault();
                 }
               }}

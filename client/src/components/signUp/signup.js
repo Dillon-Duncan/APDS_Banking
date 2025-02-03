@@ -2,17 +2,13 @@ import React, { useState, useEffect } from 'react';
 import '../../styles/theme.css';
 import { useNavigate } from 'react-router-dom';
 import { 
-  NAME_REGEX, 
-  ACCOUNT_REGEX,
-  PASSWORD_REGEX 
+  PASSWORD_REGEX,
+  NAME_REGEX,
+  ACCOUNT_REGEX
 } from '../../utils/validations';
 
 const Signup = () => {
     useEffect(() => {
-        console.log('Signup component mounted');
-        return () => {
-            console.log('Signup component unmounted');
-        };
     }, []);
 
     const navigate = useNavigate();
@@ -29,14 +25,9 @@ const Signup = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        console.log(`Input field "${name}" changed`);
         setFormData({
             ...formData,
             [name]: value
-        });
-        console.log('Updated form data:', { 
-            ...formData, 
-            [name]: name === 'password' ? '****' : value 
         });
     };
 
@@ -52,6 +43,7 @@ const Signup = () => {
 
             const response = await fetch('http://localhost:5000/api/auth/register', {
                 method: 'POST',
+                mode: 'cors',
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -81,7 +73,11 @@ const Signup = () => {
                         <div className="form-column">
                             <div className="form-group">
                                 <label className="form-label" htmlFor="first_name">First Name</label>
-                                <input className="form-input" type="text" id="first_name" name="first_name" placeholder="Enter first name" value={formData.first_name} onChange={handleInputChange} required />
+                                <input className="form-input" type="text" id="first_name" name="first_name" placeholder="Enter first name" value={formData.first_name} onChange={handleInputChange} required onBlur={(e) => {
+                                    if (!NAME_REGEX.test(e.target.value)) {
+                                        setError('Invalid name format');
+                                    }
+                                }} />
                             </div>
                             <div className="form-group">
                                 <label className="form-label" htmlFor="id_number">ID Number</label>
@@ -96,7 +92,11 @@ const Signup = () => {
                         <div className="form-column">
                             <div className="form-group">
                                 <label className="form-label" htmlFor="last_name">Last Name</label>
-                                <input className="form-input" type="text" id="last_name" name="last_name" placeholder="Enter last name" value={formData.last_name} onChange={handleInputChange} required />
+                                <input className="form-input" type="text" id="last_name" name="last_name" placeholder="Enter last name" value={formData.last_name} onChange={handleInputChange} required onBlur={(e) => {
+                                    if (!NAME_REGEX.test(e.target.value)) {
+                                        setError('Invalid name format');
+                                    }
+                                }} />
                             </div>
                             <div className="form-group">
                                 <label className="form-label" htmlFor="account_number">Account Number</label>
@@ -113,7 +113,7 @@ const Signup = () => {
                                     value={formData.password}
                                     onChange={handleInputChange}
                                     onKeyDown={(e) => {
-                                        if(e.key !== 'Backspace' && (e.key.length > 1 || !/^[\x00-\x7F]$/.test(e.key))) {
+                                        if(e.key !== 'Backspace' && !/^[\x20-\x7E]$/.test(e.key)) {
                                             e.preventDefault();
                                         }
                                     }}

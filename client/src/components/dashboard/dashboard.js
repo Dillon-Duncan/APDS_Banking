@@ -59,21 +59,12 @@ const Dashboard = ({ setIsAuthenticated }) => {
     fetchUserProfile();
   }, [navigate, setIsAuthenticated]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
-    navigate('/user/login', { replace: true });
-  };
-
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!user) return null;
 
   return (
     <div className="dashboard-container">
-      
       <div className="dashboard-content">
         {user.role === 'admin' ? (
           <AdminDashboard user={user} token={localStorage.getItem('token')} />

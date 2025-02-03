@@ -1,5 +1,5 @@
-const crypto = require('crypto');
-
-const secretKey = crypto.randomBytes(32).toString('hex');
-
-module.exports = secretKey;
+const { JWT_SECRET } = require('../config');
+module.exports = { 
+  secretKey: Buffer.from(JWT_SECRET, 'base64'),
+  expiresIn: '1h'
+};

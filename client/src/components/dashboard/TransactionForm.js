@@ -5,7 +5,6 @@ import {
   ACCOUNT_REGEX, 
   AMOUNT_REGEX,
   SWIFT_REGEX,
-  ADDRESS_REGEX,
   validateInput 
 } from '../../utils/validations';
 
@@ -14,7 +13,7 @@ const TransactionForm = ({ token, onSuccess }) => {
     amount: '',
     currency: 'ZAR',
     provider: '',
-    swiftCode: '', // New field for SWIFT code
+    swiftCode: '',
     recipientAccountInfo: {
       accountName: '',
       accountNumber: '',
@@ -24,7 +23,6 @@ const TransactionForm = ({ token, onSuccess }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    // Check if updating a nested field (e.g., recipientAccountInfo.accountName)
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setFormData({
@@ -84,7 +82,8 @@ const TransactionForm = ({ token, onSuccess }) => {
       case 'amount':
         isValid = validateInput(value, AMOUNT_REGEX);
         break;
-      // Add other fields
+      default:
+        throw new Error(`Unhandled transaction type: ${name}`);
     }
     
     setFormData({

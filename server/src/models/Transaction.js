@@ -1,20 +1,16 @@
 const mongoose = require("../config/dbConfig");
-const { NAME_REGEX, ACCOUNT_REGEX, SWIFT_REGEX, CURRENCIES } = require("../utils/validations");
+const { HIGH_RISK_COUNTRIES, NAME_REGEX, ACCOUNT_REGEX, SWIFT_REGEX, CURRENCIES } = require("../constants/validation");
 
 const transactionSchema = new mongoose.Schema({
-  // Customer Information (referenced from User model)
   customer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
-
-  // Payment Details
   amount: {
     type: Number,
     required: true,
     min: [0, 'Amount must be positive'],
-    // Note: Regex validation for decimals is optional
     match: /^\d+(\.\d{1,2})?$/
   },
   currency: {
@@ -38,14 +34,9 @@ const transactionSchema = new mongoose.Schema({
     ],
     required: true
   },
-
-  // SWIFT Payment Details
   swiftCode: {
     type: String,
-    required: true,
-    // We remove the strict regex so admins can validate manually.
-    // If you wish, you can uncomment the following line to enforce strict validation.
-    // match: /^[A-Z0-9]{8}$/
+    required: true
   },
   recipientAccountInfo: {
     accountName: {
@@ -67,15 +58,11 @@ const transactionSchema = new mongoose.Schema({
       match: NAME_REGEX
     }
   },
-
-  // Transaction Status
   status: {
     type: String,
     enum: ['pending', 'completed', 'rejected'],
     default: 'pending'
   },
-
-  // Employee Verification
   verifiedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -89,8 +76,12 @@ const transactionSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
-
-  // Timestamps
+  riskScore: {
+    type: Number,
+    min: 0,
+    max: 100,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -101,12 +92,10 @@ const transactionSchema = new mongoose.Schema({
   }
 });
 
-// Update the updatedAt timestamp before saving
-transactionSchema.pre('save', function (next) {
+transactionSchema.pre('save', async function (next) {
   this.updatedAt = Date.now();
-  // Sanitize all string fields
   this.provider = this.provider.replace(/[<>]/g, '');
-  this.swiftCode = this.swiftCode.replace(/[^A-Z0-9]/g, '');
+  this.swiftCode = this.swiftCode?.replace(/[^A-Z0-9]/g, '') || '';
   
   if(this.recipientAccountInfo) {
     this.recipientAccountInfo.accountName = this.recipientAccountInfo.accountName
@@ -116,6 +105,21 @@ transactionSchema.pre('save', function (next) {
       .replace(/\D/g, '')
       .substring(0, 20);
   }
+  
+  const similarTransactions = await this.constructor.find({
+    $or: [
+      { 'recipientAccountInfo.accountNumber': this.recipientAccountInfo.accountNumber },
+      { 'recipientAccountInfo.bankName': this.recipientAccountInfo.bankName }
+    ],
+    status: 'rejected'
+  });
+  
+  this.riskScore = Math.min(
+    similarTransactions.length * 15 +
+    (this.amount > 5000 ? 20 : 0) +
+    (HIGH_RISK_COUNTRIES.includes(this.recipientCountry) ? 30 : 0),
+    100
+  );
   
   next();
 });

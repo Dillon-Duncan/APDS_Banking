@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import '../../styles/theme.css';
-import './signUp.css';
 import { useNavigate } from 'react-router-dom';
+import { 
+  NAME_REGEX, 
+  ACCOUNT_REGEX,
+  PASSWORD_REGEX 
+} from '../../utils/validations';
 
 const Signup = () => {
     useEffect(() => {
@@ -39,12 +43,19 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const sanitizedData = {
+                ...formData,
+                first_name: formData.first_name.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, ''),
+                last_name: formData.last_name.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, ''),
+                account_number: formData.account_number.replace(/[^A-Z0-9]/gi, '')
+            };
+
             const response = await fetch('http://localhost:5000/api/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(sanitizedData)
             });
             
             if (!response.ok) {
@@ -60,10 +71,10 @@ const Signup = () => {
     };
 
     return (
-        <div className="page-container">
-            <div className="form-container">
+        <div className="centered-container">
+            <div className="form-container centered-content">
                 <form className="signup-form" onSubmit={handleSubmit}>
-                    <h1 className="form-title">Sign Up</h1>
+                    <h1 className="dashboard-heading">Sign Up</h1>
                     {error && <div className="error-message">{error}</div>}
                     
                     <div className="form-row">
@@ -93,7 +104,28 @@ const Signup = () => {
                             </div>
                             <div className="form-group">
                                 <label className="form-label" htmlFor="password">Password</label>
-                                <input className="form-input" type="password" id="password" name="password" placeholder="Create a password" value={formData.password} onChange={handleInputChange} required />
+                                <input
+                                    className="form-input"
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    placeholder="Create a password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    onKeyDown={(e) => {
+                                        if(e.key !== 'Backspace' && (e.key.length > 1 || !/^[\x00-\x7F]$/.test(e.key))) {
+                                            e.preventDefault();
+                                        }
+                                    }}
+                                    onBlur={(e) => {
+                                        if(!PASSWORD_REGEX.test(e.target.value)) {
+                                            setError('Password requires 8+ chars with letters and numbers');
+                                        }
+                                    }}
+                                    minLength="8"
+                                    maxLength="100"
+                                    required
+                                />
                             </div>
                         </div>
                     </div>

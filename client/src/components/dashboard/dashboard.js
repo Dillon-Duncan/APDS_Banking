@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CustomerDashboard from './CustomerDashboard';
 import AdminDashboard from './AdminDashboard';
-import '../../styles/dashboard.css';
+import '../../styles/theme.css';
 
 const Dashboard = ({ setIsAuthenticated }) => {
   const [user, setUser] = useState(null);
@@ -73,10 +73,6 @@ const Dashboard = ({ setIsAuthenticated }) => {
 
   return (
     <div className="dashboard-container">
-      <nav className="dashboard-nav">
-        <h2>Banking Portal</h2>
-        <button onClick={handleLogout} className="logout-button">Logout</button>
-      </nav>
       
       <div className="dashboard-content">
         {user.role === 'admin' ? (

@@ -4,6 +4,7 @@ export const API_ENDPOINTS = {
     AUTH: {
         REGISTER: `${API_BASE_URL}/auth/register`,
         LOGIN: `${API_BASE_URL}/auth/login`,
+        PROFILE: `${API_BASE_URL}/auth/profile`,
     },
     USER: {
         PROFILE: `${API_BASE_URL}/user/profile`,
@@ -14,7 +15,8 @@ export const API_ENDPOINTS = {
         GET_BY_ID: (id) => `${API_BASE_URL}/transaction/${id}`,
         ADMIN: {
             PENDING: `${API_BASE_URL}/transaction/admin/pending`,
-            VERIFY: (id) => `${API_BASE_URL}/transaction/admin/verify/${id}`,
+            VERIFY: `${API_BASE_URL}/transaction/admin/verify`,
+            VALIDATE_SWIFT: `${API_BASE_URL}/transaction/admin/validate-swift`
         }
     }
 }; 

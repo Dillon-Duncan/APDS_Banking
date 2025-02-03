@@ -5,7 +5,9 @@ const { generateToken } = require('../utils/jwtUtil');
 async function login(req, res) {
     try {
         console.log('Login attempt for username:', req.body.username);
-        const { username, account_number, password } = req.body;
+        const username = req.body.username.trim().toLowerCase();
+        const account_number = req.body.account_number?.trim().replace(/\s/g, '');
+        const password = req.body.password;
 
         if (!username || !password) {
             return res.status(400).json({ message: "Username and password are required" });
@@ -13,14 +15,17 @@ async function login(req, res) {
 
         let existingUser;
 
-        if (username === "Admin") {
-            existingUser = await User.findOne({ username });
+        if (username === "admin") {
+            existingUser = await User.findOne({ username: "admin" });
             console.log('Admin login attempt');
         } else {
             if (!account_number) {
                 return res.status(400).json({ message: "Account number is required" });
             }
-            existingUser = await User.findOne({ username, account_number });
+            existingUser = await User.findOne({ 
+                username: { $regex: new RegExp(`^${username}$`, 'i') },
+                account_number
+            });
         }
 
         if (!existingUser) {

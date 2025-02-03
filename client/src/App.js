@@ -1,3 +1,4 @@
+// File: src/App.js
 import './styles/theme.css';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -7,8 +8,14 @@ import Dashboard from './components/dashboard/dashboard';
 import Header from './components/header/Header';
 
 function App() {
+  // On app start, clear any stored token to ensure no user is logged in.
+  useEffect(() => {
+    localStorage.removeItem('token');
+  }, []);
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Check localStorage for a token (will be null on initial load)
   useEffect(() => {
     const token = localStorage.getItem('token');
     setIsAuthenticated(!!token);

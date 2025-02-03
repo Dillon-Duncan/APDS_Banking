@@ -3,14 +3,14 @@ const bcrypt = require("bcrypt");
 
 async function createAdminAccount() {
   try {
-    const existingAdmin = await User.findOne({ username: "Admin" });
+    const existingAdmin = await User.findOne({ username: "admin" });
     if (!existingAdmin) {
         const newAdmin = new User({
             first_name: "Admin",
             last_name: "Admin",
-            id_number: "ADMIN001",
-            account_number: "ADMIN001",
-            username: "Admin",
+            id_number: "0000000000000",
+            account_number: "0000000000",
+            username: "admin",
             password: await bcrypt.hash("Admin321?", 10),
             role: "admin",
         });
@@ -20,7 +20,7 @@ async function createAdminAccount() {
         console.log("Admin account already exists");
     }
   } catch (error) {
-    console.log(error.message);
+    console.log("Error creating admin:", error.message);
   }
 }
 

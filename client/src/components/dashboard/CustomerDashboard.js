@@ -1,27 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import TransactionForm from './TransactionForm';
+import { API_ENDPOINTS } from '../../config/api';
 
 const CustomerDashboard = ({ user, token }) => {
   const [transactions, setTransactions] = useState([]);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/transaction/my-transactions', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await fetch(API_ENDPOINTS.TRANSACTION.MY_TRANSACTIONS, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
       setTransactions(data);
     } catch (error) {
       console.error('Error fetching transactions:', error);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchTransactions();
-  }, [token]);
+  }, [token, fetchTransactions]);
 
   return (
     <div className="customer-dashboard">
@@ -74,4 +73,4 @@ const CustomerDashboard = ({ user, token }) => {
   );
 };
 
-export default CustomerDashboard; 
+export default CustomerDashboard;

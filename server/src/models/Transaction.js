@@ -1,4 +1,5 @@
 const mongoose = require("../config/dbConfig");
+const { NAME_REGEX, ACCOUNT_REGEX, SWIFT_REGEX, CURRENCIES } = require("../utils/validations");
 
 const transactionSchema = new mongoose.Schema({
   // Customer Information (referenced from User model)
@@ -13,7 +14,8 @@ const transactionSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: [0, 'Amount must be positive'],
-    match: /^\d+(\.\d{1,2})?$/  // Positive number with up to 2 decimal places
+    // Note: Regex validation for decimals is optional
+    match: /^\d+(\.\d{1,2})?$/
   },
   currency: {
     type: String,
@@ -41,23 +43,28 @@ const transactionSchema = new mongoose.Schema({
   swiftCode: {
     type: String,
     required: true,
-    match: /^[A-F0-9]{8}$/
+    // We remove the strict regex so admins can validate manually.
+    // If you wish, you can uncomment the following line to enforce strict validation.
+    // match: /^[A-Z0-9]{8}$/
   },
   recipientAccountInfo: {
     accountName: {
       type: String,
       required: true,
-      match: /^[a-zA-Z\s]{2,50}$/
+      set: (v) => v.trim().replace(/[<>]/g, ''),
+      match: NAME_REGEX
     },
     accountNumber: {
       type: String,
       required: true,
-      match: /^[0-9]{10,20}$/
+      set: (v) => v.replace(/\s/g, ''),
+      match: ACCOUNT_REGEX
     },
     bankName: {
       type: String,
       required: true,
-      match: /^[a-zA-Z\s\-&]{2,100}$/
+      set: (v) => v.trim().replace(/[<>]/g, ''),
+      match: NAME_REGEX
     }
   },
 
@@ -97,6 +104,19 @@ const transactionSchema = new mongoose.Schema({
 // Update the updatedAt timestamp before saving
 transactionSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
+  // Sanitize all string fields
+  this.provider = this.provider.replace(/[<>]/g, '');
+  this.swiftCode = this.swiftCode.replace(/[^A-Z0-9]/g, '');
+  
+  if(this.recipientAccountInfo) {
+    this.recipientAccountInfo.accountName = this.recipientAccountInfo.accountName
+      .replace(/[<>]/g, '')
+      .substring(0, 50);
+    this.recipientAccountInfo.accountNumber = this.recipientAccountInfo.accountNumber
+      .replace(/\D/g, '')
+      .substring(0, 20);
+  }
+  
   next();
 });
 

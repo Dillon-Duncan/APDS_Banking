@@ -24,7 +24,8 @@ const userSchema = new mongoose.Schema({
     username: {
         type: String,
         required: true,
-        match: /^[a-zA-Z0-9_]{3,20}$/  // Alphanumeric and underscore, 3-20 chars
+        match: /^[a-zA-Z0-9_]{3,20}$/,
+        unique: true
     },
     password: {
         type: String,

@@ -1,17 +1,16 @@
 const express = require('express');
+const router = express.Router();
 const transactionController = require('../controller/transaction');
-const authMiddleware = require('../middleware/auth');
+const authenticateToken = require('../utils/authMiddleware');
 const adminMiddleware = require('../middleware/admin');
 
-const router = express.Router();
+// Customer routes
+router.get('/my-transactions', authenticateToken, transactionController.getMyTransactions);
+router.post('/create', authenticateToken, transactionController.createTransaction);
+router.get('/:id', authenticateToken, transactionController.getTransactionById);
 
-// Customer transaction routes
-router.get('/my-transactions', authMiddleware, transactionController.getCustomerTransactions);
-router.post('/create', authMiddleware, transactionController.createTransaction);
-router.get('/:id', authMiddleware, transactionController.getTransactionById);
+// Admin routes (protected by both authenticateToken and adminMiddleware)
+router.get('/admin/pending', authenticateToken, adminMiddleware, transactionController.getPendingTransactions);
+router.post('/admin/verify/:transactionId', authenticateToken, adminMiddleware, transactionController.verifyTransaction);
 
-// Admin transaction routes
-router.get('/admin/pending', [authMiddleware, adminMiddleware], transactionController.getPendingTransactions);
-router.post('/admin/verify/:transactionId', [authMiddleware, adminMiddleware], transactionController.verifyTransaction);
-
-module.exports = router; 
+module.exports = router;

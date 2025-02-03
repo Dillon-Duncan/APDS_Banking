@@ -3,14 +3,20 @@ const User = require('../models/User');
 async function getUser(req, res) {
     try {
         console.log('Fetching user profile for ID:', req.user.id);
+        
+        if (!req.user || !req.user.id) {
+            console.log('No user ID in request');
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+
         const user = await User.findById(req.user.id).select('-password');
         
         if (!user) {
-            console.log('User profile not found');
+            console.log('User profile not found for ID:', req.user.id);
             return res.status(404).json({ message: 'User not found' });
         }
 
-        console.log('User profile fetched successfully');
+        console.log('User profile fetched successfully for:', user.username);
         res.json({
             id: user._id,
             username: user.username,

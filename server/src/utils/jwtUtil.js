@@ -3,7 +3,11 @@ const { secretKey } = require('../config/jwtConfig');
 
 function generateToken(user) {
     return jwt.sign(
-        { userId: user._id, role: user.role },
+        { 
+            userId: user._id, 
+            role: user.role,
+            isAdmin: user.role === 'admin'
+        },
         secretKey,
         { algorithm: 'HS256', expiresIn: '1h' }
     );

@@ -11,26 +11,25 @@ const AdminDashboard = ({ user, token }) => {
   const fetchPendingTransactions = useCallback(async () => {
     try {
       const response = await fetch(API_ENDPOINTS.TRANSACTION.ADMIN.PENDING, {
-        headers: { 
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: 'include'
       });
       const data = await response.json();
-      setPendingTransactions(data);
+      setPendingTransactions(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching pending transactions:', error);
+      setPendingTransactions([]);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     fetchPendingTransactions();
     const interval = setInterval(fetchPendingTransactions, 30000);
     return () => clearInterval(interval);
-  }, [token, fetchPendingTransactions]);
+  }, [fetchPendingTransactions]);
 
   const handleVerification = async (transactionId, action) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/transaction/admin/verify/${transactionId}`, {
+      const response = await fetch(`${API_ENDPOINTS.TRANSACTION.ADMIN.VERIFY}/${transactionId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

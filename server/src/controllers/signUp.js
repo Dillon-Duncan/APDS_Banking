@@ -1,5 +1,6 @@
 const User = require("../models/user")
 const bcrypt = require("bcrypt")
+const crypto = require("crypto")
 
 async function createUser(req, res) {
     try {
@@ -30,6 +31,16 @@ async function createUser(req, res) {
         if (existingAccount) {
             console.log('Registration failed: Account number already exists');
             return res.status(400).json({ message: "Account number already exists" });
+        }
+
+        const haveIBeenPwned = async (password) => {
+            const hash = crypto.createHash('sha1').update(password).digest('hex').toUpperCase();
+            const response = await fetch(`https://api.pwnedpasswords.com/range/${hash.slice(0,5)}`);
+            return (await response.text()).includes(hash.slice(5));
+        };
+
+        if (await haveIBeenPwned(password)) {
+            return res.status(400).json({ message: "Password has been compromised in public breaches" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10)

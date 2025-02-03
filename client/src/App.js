@@ -39,9 +39,11 @@ function App() {
         <Route 
           path="/dashboard" 
           element={
-            isAuthenticated ? 
-            <Dashboard setIsAuthenticated={setIsAuthenticated} /> : 
-            <Navigate to="/user/login" replace />
+            isAuthenticated ? (
+              <Dashboard setIsAuthenticated={setIsAuthenticated} />
+            ) : (
+              <Navigate to="/user/login" replace />
+            )
           } 
         />
       </Routes>

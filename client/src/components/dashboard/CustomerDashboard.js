@@ -9,18 +9,19 @@ const CustomerDashboard = ({ user, token }) => {
   const fetchTransactions = useCallback(async () => {
     try {
       const response = await fetch(API_ENDPOINTS.TRANSACTION.MY_TRANSACTIONS, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       const data = await response.json();
-      setTransactions(data);
+      setTransactions(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching transactions:', error);
+      setTransactions([]);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     fetchTransactions();
-  }, [token, fetchTransactions]);
+  }, [fetchTransactions]);
 
   return (
     <div className="customer-dashboard">
@@ -40,7 +41,6 @@ const CustomerDashboard = ({ user, token }) => {
 
       {showTransactionForm && (
         <TransactionForm 
-          token={token} 
           onSuccess={() => {
             setShowTransactionForm(false);
             fetchTransactions();

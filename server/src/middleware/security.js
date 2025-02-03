@@ -3,33 +3,35 @@ const helmet = require('helmet');
 const { v4: uuidv4 } = require('uuid');
 const SessionActivity = require('../models/SessionActivity');
 const cors = require('cors');
+const crypto = require('crypto');
+const User = require('../models/user');
 
 // Security headers
-exports.securityHeaders = helmet({
-  contentSecurityPolicy: {
-    directives: {
-      'default-src': ["'self'"],
-      'script-src': ["'self'", "'unsafe-inline'"],
-      'style-src': ["'self'", "'unsafe-inline'"],
-      'img-src': ["'self'", 'data:'],
-      'connect-src': ["'self'", 'http://localhost:5000']
+exports.securityHeaders = (req, res, next) => {
+  const nonce = crypto.randomBytes(16).toString('base64');
+  res.locals.nonce = nonce;
+  
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        scriptSrc: ["'self'", `'nonce-${nonce}'`],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:"],
+        connectSrc: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'none'"],
+        baseUri: ["'self'"]
+      }
     }
-  },
-  hsts: {
-    maxAge: 63072000, // 2 years in seconds
-    includeSubDomains: true,
-    preload: true
-  },
-  frameguard: { action: 'deny' },
-  hidePoweredBy: true,
-  noSniff: true,
-  xssFilter: true
-});
+  })(req, res, next);
+};
 
 // Rate limiting
 exports.globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500,
+  max: (req) => req.ipReputation?.score > 0.7 ? 100 : 50,
+  message: 'Too many requests',
   validate: { trustProxy: false }
 });
 
@@ -39,21 +41,26 @@ exports.authLimiter = rateLimit({
   message: 'Too many login attempts'
 });
 
-// Session validation
-exports.sessionValidation = (req, res, next) => {
-  const clientIP = req.ip;
-  const sessionIP = req.cookies.sessionIP;
-  
-  if (!sessionIP) {
-    res.cookie('sessionIP', clientIP, {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      maxAge: 15 * 60 * 1000
-    });
-    return next();
-  }
+exports.userLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: (req) => req.user ? 1000 : 100,
+  keyGenerator: (req) => req.user?.id || req.ip
+});
 
-  if (sessionIP !== clientIP) {
+// Session validation
+exports.sessionValidation = async (req, res, next) => {
+  // Add early return for unauthenticated requests
+  if (!req.user) return next();
+
+  const clientFingerprint = crypto.createHash('sha256')
+    .update(`${req.ip}${req.headers['user-agent']}`)
+    .digest('hex');
+
+  if(req.cookies.sessionFingerprint !== clientFingerprint) {
+    await User.updateOne(
+      { _id: req.user.id },
+      { $set: { sessions: [] } }
+    );
     return res.status(401).clearCookie('token').json({ 
       message: "Session validation failed" 
     });

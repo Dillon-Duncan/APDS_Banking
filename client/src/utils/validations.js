@@ -1,5 +1,5 @@
 export const NAME_REGEX = /^[a-zA-ZÀ-ÿ\s'-]{2,50}$/;
-export const ACCOUNT_REGEX = /^[A-Z0-9]{10,20}$/i;
+export const ACCOUNT_REGEX = /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/i;
 export const AMOUNT_REGEX = /^[£€$]?\d+(\.\d{1,2})?$/;
 export const SWIFT_REGEX = /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/;
 export const ADDRESS_REGEX = /^[a-zA-Z0-9\s.,'-]{5,100}$/;

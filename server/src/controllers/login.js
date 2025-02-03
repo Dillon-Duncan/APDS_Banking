@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const { generateToken } = require('../utils/jwtUtil');
+const crypto = require('crypto');
 
 async function login(req, res) {
     try {
@@ -16,7 +17,7 @@ async function login(req, res) {
             username: username
         }).select('+password');
 
-        if (!existingUser || !(await bcrypt.compare(password, existingUser.password))) {
+        if (!existingUser || !(await comparePassword(password, existingUser.password))) {
             await new Promise(resolve => setTimeout(resolve, 2000)); // Delay brute-force
             return res.status(401).json({ message: "Invalid credentials" });
         }
@@ -45,6 +46,10 @@ async function login(req, res) {
         res.status(500).json({ message: "Server error" });
     }
 }
+
+const comparePassword = async (input, hash) => {
+    return await bcrypt.compare(input, hash);
+};
 
 async function getProfile(req, res) {
     try {

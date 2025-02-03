@@ -10,10 +10,11 @@ const {
 } = require('../constants/validation');
 
 const validateTransactionInput = [
-  body('amount').isFloat({ min: 0.01 }).withMessage('Invalid amount'),
+  body('amount').isFloat({ min: 0.01 }).customSanitizer(value => {
+    return Math.round(value * 100) / 100; // Prevent floating point precision issues
+  }).withMessage('Invalid amount'),
   body('currency').isISO4217().withMessage('Invalid currency code'),
-  body('recipientAccountInfo.accountNumber')
-    .isLength({ min: 10, max: 20 }).withMessage('Invalid account number length'),
+  body('recipientAccountInfo.accountNumber').isIBAN(),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -160,6 +161,14 @@ async function getPendingTransactions(req, res) {
   }
 }
 
+const verificationNotesValidator = [
+  body('verificationNotes')
+    .trim()
+    .escape()
+    .matches(NOTES_REGEX)
+    .withMessage('Invalid notes format')
+];
+
 async function verifyTransaction(req, res) {
   try {
     const { transactionId } = req.params;
@@ -169,7 +178,7 @@ async function verifyTransaction(req, res) {
       return res.status(400).json({ message: "Invalid action specified" });
     }
 
-    if (verificationNotes && !NOTES_REGEX.test(verificationNotes)) {
+    if (!NOTES_REGEX.test(verificationNotes)) {
       return res.status(400).json({
         message: "Invalid characters in verification notes"
       });

@@ -1,0 +1,14 @@
+services:
+  app:
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - CSRF_SECRET=${CSRF_SECRET}
+    secrets:
+      - jwt_secret
+      - csrf_secret
+
+secrets:
+  jwt_secret:
+    external: true
+  csrf_secret:
+    external: true 

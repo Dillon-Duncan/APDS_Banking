@@ -8,7 +8,7 @@ import {
   validateInput 
 } from '../../utils/validations';
 
-const TransactionForm = ({ token, onSuccess }) => {
+const TransactionForm = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
     amount: '',
     currency: 'ZAR',
@@ -43,25 +43,46 @@ const TransactionForm = ({ token, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Add validation checks
+      if (!formData.amount || isNaN(formData.amount)) {
+        throw new Error('Valid amount is required');
+      }
+      if (!formData.swiftCode || formData.swiftCode.length < 8) {
+        throw new Error('SWIFT code must be at least 8 characters');
+      }
+      if (!formData.recipientAccountInfo.accountName) {
+        throw new Error('Recipient name is required');
+      }
+      if (!formData.recipientAccountInfo.bankName) {
+        throw new Error('Recipient bank is required');
+      }
+
       const response = await fetch(API_ENDPOINTS.TRANSACTION.CREATE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        credentials: 'include',
+        body: JSON.stringify({
+          ...formData,
+          amount: parseFloat(formData.amount) // Convert to number
+        })
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Transaction created:', data);
         onSuccess();
       } else {
         const error = await response.json();
         console.error('Transaction creation failed:', error);
+        // Handle server-side validation errors
+        if (error.errors) {
+          alert(`Validation errors:\n${error.errors.map(e => e.msg).join('\n')}`);
+        }
       }
     } catch (error) {
       console.error('Error creating transaction:', error);
+      alert(error.message);
     }
   };
 
@@ -81,6 +102,9 @@ const TransactionForm = ({ token, onSuccess }) => {
         break;
       case 'amount':
         isValid = validateInput(value, AMOUNT_REGEX);
+        break;
+      case 'recipientAccountInfo.bankName':
+        isValid = validateInput(value, NAME_REGEX);
         break;
       default:
         throw new Error(`Unhandled transaction type: ${name}`);
@@ -167,7 +191,8 @@ const TransactionForm = ({ token, onSuccess }) => {
             value={formData.recipientAccountInfo.accountNumber}
             onChange={handleInputChange}
             required
-            pattern="[0-9]{10,20}"
+            pattern="[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}"
+            onKeyPress={(e) => !/[A-Z0-9]/i.test(e.key) && e.preventDefault()}
             onBlur={handleBlur}
           />
           {formData.recipientAccountInfoTouched && formData.recipientAccountInfoError && (

@@ -11,23 +11,14 @@ const Dashboard = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const abortController = new AbortController();
+    
     const fetchUserProfile = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          console.log('No token found, redirecting to login');
-          setIsAuthenticated(false);
-          navigate('/user/login');
-          return;
-        }
-
-        console.log('Fetching user profile with token:', token.substring(0, 20) + '...');
         const response = await fetch('http://localhost:5000/api/profile', {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+          credentials: 'include',
+          signal: abortController.signal
         });
 
         console.log('Response status:', response.status);
@@ -49,14 +40,22 @@ const Dashboard = ({ setIsAuthenticated }) => {
         console.log('Profile fetched successfully:', userData);
         setUser(userData);
       } catch (error) {
-        console.error('Error fetching user:', error);
-        setError(error.message);
+        if (error.name === 'AbortError') {
+          console.log('Fetch aborted');
+        } else {
+          console.error('Error fetching user:', error);
+          setError(error.message);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserProfile();
+
+    return () => {
+      abortController.abort();
+    };
   }, [navigate, setIsAuthenticated]);
 
   if (loading) return <div>Loading...</div>;

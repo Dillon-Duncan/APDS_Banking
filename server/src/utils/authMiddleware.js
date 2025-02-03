@@ -2,19 +2,19 @@ const jwt = require('jsonwebtoken');
 const { secretKey } = require('../config/jwtConfig');
 
 function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) {
+    // Updated token extraction
+    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+    if (!token) {
         return res.status(401).json({ message: 'Unauthorized: Missing token' });
-    }
-
-    const [bearer, token] = authHeader.split(' ');
-    if (bearer !== 'Bearer' || !token) {
-        return res.status(401).json({ message: 'Unauthorized: Invalid token format'});
     }
 
     try {
         const decoded = jwt.verify(token, secretKey);
-        req.user = { id: decoded.userId, role: decoded.role };
+        req.user = { 
+            id: decoded.userId, 
+            role: decoded.role,
+            isAdmin: decoded.isAdmin
+        };
         next();
     } catch (err) {
         return res.status(403).json({ message: 'Unauthorized: Invalid token' });

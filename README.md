@@ -4,6 +4,8 @@ Welcome to the APDS Banking Platform, a **Secure Transaction Management System**
 
 **Note:** Please ensure you are using the **"Main"** branch for all development and deployment activities.
 
+**Quick Tip:** If you are not familiar with Git or prefer not to use Git commands, you may find it easier to download the repository files as a ZIP directly from the **"Main"** branch on GitHub.
+
 ---
 
 ## Table of Contents

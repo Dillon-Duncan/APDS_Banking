@@ -149,21 +149,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Initialize CodeQL analysis
+      # Initialize CodeQL analysis before running it
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
 
-      # Run CodeQL analysis and save log
+      # Run CodeQL analysis properly
       - name: Perform CodeQL Analysis
-        run: |
-          echo "Starting CodeQL Analysis..." > codeql.log
-          github/codeql-action/analyze@v3 &>> codeql.log
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
 
       # Upload CodeQL Analysis Logs
       - name: Upload CodeQL Logs
         uses: actions/upload-artifact@v4
         with:
           name: codeql-results
-          path: codeql.log
+          path: /home/runner/work/_temp/codeql_results

@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "master" ]
 
+permissions:
+  contents: write  # Allows the workflow to push changes back to GitHub
+
 jobs:
   # --------------------------------------
   # JOB 1: Install dependencies, Lint & Auto-Fix
@@ -45,7 +48,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "Auto-fixed ESLint issues" || echo "No changes to commit"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git || echo "No changes to push"
+          git push origin HEAD:master || echo "No changes to push"
 
       # Upload ESLint log
       - name: Upload ESLint Results
@@ -67,7 +70,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "Auto-fixed code formatting" || echo "No changes to commit"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git || echo "No changes to push"
+          git push origin HEAD:master || echo "No changes to push"
 
       # Upload Prettier log
       - name: Upload Prettier Logs
@@ -112,7 +115,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "Auto-fixed security vulnerabilities" || echo "No changes to commit"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git || echo "No changes to push"
+          git push origin HEAD:master || echo "No changes to push"
 
       # Upload Security Logs
       - name: Upload Security Audit Logs

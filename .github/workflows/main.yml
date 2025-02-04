@@ -25,11 +25,20 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm install
+      - name: Clean npm cache and reinstall dependencies
+        run: |
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          npm install
+
+      - name: Ensure ESLint is Installed
+        run: npm install --save-dev eslint
+
+      - name: Fix ESLint Permissions
+        run: chmod +x node_modules/.bin/eslint || true
 
       - name: Run ESLint with Auto-Fix
-        run: npx eslint . --fix 2>&1 | tee eslint.log || true
+        run: npx --no-install eslint . --fix 2>&1 | tee eslint.log || true
 
       - name: Upload ESLint Results
         uses: actions/upload-artifact@v4

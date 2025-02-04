@@ -2,6 +2,8 @@
 
 Welcome to the APDS Banking Platform, a **Secure Transaction Management System** designed with robust security measures at every layer. This README provides a comprehensive overview of the application’s security features, system architecture, core functionality, and instructions on how to pull and run the project locally.
 
+**Note:** Please ensure you are using the **"Main"** branch for all development and deployment activities.
+
 ---
 
 ## Table of Contents
@@ -195,19 +197,16 @@ Welcome to the APDS Banking Platform, a **Secure Transaction Management System**
 - **MongoDB** 5.0+  
 - **Docker** 20.10+ (optional but recommended for containerized setup)
 
-Below is an updated set of instructions that incorporates both the original steps and the new considerations about creating a `.env` file in the `src` folder and installing `dotenv` if needed.
+### Installation
 
----
-
-## Installation
-
-### 1. Clone the Repository
+#### 1. Clone the Repository
+Clone the repository and ensure you are on the **"Main"** branch:
 ```bash
-git clone https://github.com/Dillon-Duncan/APDS_Banking.git
+git clone -b Main https://github.com/Dillon-Duncan/APDS_Banking.git
 cd APDS_Banking
 ```
 
-### 2. Server Setup
+#### 2. Server Setup
 1. Navigate into the **server** directory:
    ```bash
    cd server
@@ -236,7 +235,7 @@ cd APDS_Banking
    npm install dotenv
    ```
 
-### 3. Client Setup
+#### 3. Client Setup
 1. Navigate to the **client** directory:
    ```bash
    cd ../client
@@ -246,7 +245,7 @@ cd APDS_Banking
    npm install
    ```
 
-### 4. (Optional) Generate/Rotate Secrets
+#### 4. (Optional) Generate/Rotate Secrets
 You can use the provided script to generate or rotate strong secrets for JWT and CSRF:
 
 ```bash
@@ -291,10 +290,11 @@ This will output new secrets and prompt a service restart if needed.
 ---
 
 **Note**: Ensure that your `.env` file values match the setup in your server code (e.g., `DB_URI`, `PORT`, etc.) and that the server is indeed loading them (via `dotenv` or another method).
+
 ---
 
 # Default admin credentials (from server/src/scripts/admin.js)
-Username: admin
+Username: admin  
 Password: Admin321?
 
 ## 6. Security Implementation Details
@@ -589,5 +589,19 @@ const auditLogSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+```
 
 ---
+
+## 9. Deployment Considerations
+
+When deploying the APDS Banking Platform, ensure that you:
+- Deploy from the **"Main"** branch.
+- Configure production environment variables securely.
+- Utilize HTTPS with proper TLS configurations.
+- Enable all recommended security headers and monitoring tools.
+
+---
+
+Happy coding on the **"Main"** branch and thanks for contributing to the APDS Banking Platform!
+``` 

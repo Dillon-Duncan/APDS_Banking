@@ -8,7 +8,7 @@ on:
 
 jobs:
   # --------------------------------------
-  # JOB 1: Install dependencies & Lint
+  # JOB 1: Install dependencies, Lint & Auto-Fix
   # --------------------------------------
   build-and-lint:
     runs-on: ubuntu-latest
@@ -22,7 +22,6 @@ jobs:
         with:
           node-version: 16
 
-      # Install dependencies for both server & client
       - name: Install dependencies (server)
         run: |
           cd server
@@ -33,23 +32,34 @@ jobs:
           cd client
           npm install &> ../../client-install.log
 
-      # Fix ESLint permissions issue
-      - name: Fix ESLint Permissions
-        run: chmod +x node_modules/.bin/eslint || true
+      # Run ESLint and auto-fix issues
+      - name: Run ESLint with Auto-Fix
+        run: npx eslint . --fix &> eslint.log || true
 
-      # Run ESLint and save output to a log file
-      - name: Run ESLint
-        run: npx eslint . &> eslint.log || true
+      # Commit auto-fixed lint changes
+      - name: Commit ESLint Fixes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Auto-fixed ESLint issues" || echo "No changes to commit"
+          git push || echo "No changes to push"
 
-      # Upload ESLint results
-      - name: Upload Lint Logs
-        uses: actions/upload-artifact@v3
-        with:
-          name: eslint-results
-          path: eslint.log
+      # Run Prettier auto-fix
+      - name: Auto-Fix Formatting (Prettier)
+        run: npx prettier --write . &> prettier-fix.log || true
+
+      # Commit auto-fixed formatting changes
+      - name: Commit Prettier Fixes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Auto-fixed code formatting" || echo "No changes to commit"
+          git push || echo "No changes to push"
 
   # --------------------------------------
-  # JOB 2: Security Scan (npm audit)
+  # JOB 2: Security Scan & Auto-Fix
   # --------------------------------------
   security-scan:
     runs-on: ubuntu-latest
@@ -64,28 +74,28 @@ jobs:
         with:
           node-version: 16
 
-      # Run npm audit on both client & server, saving results
-      - name: Audit server dependencies
+      # Run npm audit and auto-fix issues
+      - name: Auto-Fix Server Security Issues
         run: |
           cd server
-          npm audit --production &> ../../server-audit.log || true
+          npm audit fix --force &> ../../server-audit-fix.log || true
 
-      - name: Audit client dependencies
+      - name: Auto-Fix Client Security Issues
         run: |
           cd client
-          npm audit --production &> ../../client-audit.log || true
+          npm audit fix --force &> ../../client-audit-fix.log || true
 
-      # Upload Security Audit Logs
-      - name: Upload Security Logs
-        uses: actions/upload-artifact@v3
-        with:
-          name: security-audit-results
-          path: |
-            server-audit.log
-            client-audit.log
+      # Commit auto-fixed security issues
+      - name: Commit Security Fixes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Auto-fixed security vulnerabilities" || echo "No changes to commit"
+          git push || echo "No changes to push"
 
   # --------------------------------------
-  # JOB 3: CodeQL Security Analysis
+  # JOB 3: CodeQL Security Analysis 
   # --------------------------------------
   codeql-analysis:
     runs-on: ubuntu-latest

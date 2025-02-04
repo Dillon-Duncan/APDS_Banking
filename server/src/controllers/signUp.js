@@ -34,7 +34,8 @@ async function createUser(req, res) {
         }
 
         const haveIBeenPwned = async (password) => {
-            const hash = crypto.createHash('sha1').update(password).digest('hex').toUpperCase();
+            const salt = await bcrypt.genSalt(10);
+            const hash = (await bcrypt.hash(password, salt)).replace(/\//g, '').toUpperCase();
             const response = await fetch(`https://api.pwnedpasswords.com/range/${hash.slice(0,5)}`);
             return (await response.text()).includes(hash.slice(5));
         };

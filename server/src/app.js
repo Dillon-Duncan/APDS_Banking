@@ -15,6 +15,7 @@ const transactionRoute = require('./routes/transaction');
 const authenticatedRoutes = require('./routes/authenticated');
 const User = require('./models/user');
 const helmet = require('helmet');
+const mongoose = require('mongoose');
 
 const app = express();
 
@@ -31,7 +32,9 @@ app.use(cors({
 app.use(securityHeaders);
 app.use(globalLimiter);
 
-createAdminAccount();
+mongoose.connection.on('connected', () => {
+  createAdminAccount();
+});
 
 app.use('/api', loginRoutes);
 app.use(sessionValidation);

@@ -17,7 +17,7 @@ async function login(req, res) {
             username: username
         }).select('+password');
 
-        if (!existingUser || !(await comparePassword(password, existingUser.password))) {
+        if (!existingUser || !(await bcrypt.compare(password, existingUser.password))) {
             await new Promise(resolve => setTimeout(resolve, 2000)); // Delay brute-force
             return res.status(401).json({ message: "Invalid credentials" });
         }

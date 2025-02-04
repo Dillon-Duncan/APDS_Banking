@@ -23,17 +23,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 20
 
       - name: Install dependencies
         run: npm install
-
-      # Fix ESLint permissions and run it
-      - name: Ensure ESLint is Installed
-        run: npm install --save-dev eslint
-
-      - name: Fix ESLint Permissions
-        run: chmod +x node_modules/.bin/eslint || true
 
       - name: Run ESLint with Auto-Fix
         run: npx eslint . --fix 2>&1 | tee eslint.log || true
@@ -58,18 +51,19 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 20
 
-      # Ensure security audit logs exist
       - name: Run Security Scan (Server)
         run: |
           cd server
-          npm audit fix --force 2>&1 | tee ../../server-audit-fix.log || echo "No vulnerabilities found" > ../../server-audit-fix.log
+          npm audit fix --force 2>&1 | tee ../../server-audit-fix.log
+          test -s ../../server-audit-fix.log || echo "No vulnerabilities found" > ../../server-audit-fix.log
 
       - name: Run Security Scan (Client)
         run: |
           cd client
-          npm audit fix --force 2>&1 | tee ../../client-audit-fix.log || echo "No vulnerabilities found" > ../../client-audit-fix.log
+          npm audit fix --force 2>&1 | tee ../../client-audit-fix.log
+          test -s ../../client-audit-fix.log || echo "No vulnerabilities found" > ../../client-audit-fix.log
 
       - name: Upload Security Audit Logs
         uses: actions/upload-artifact@v4

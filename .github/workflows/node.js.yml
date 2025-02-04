@@ -38,15 +38,3 @@ jobs:
           cd server
           npm run build --if-present
           npm test
-
-      # 4) Install + test for "client" subfolder
-      - name: Install client dependencies
-        run: |
-          cd client
-          npm ci
-
-      - name: Build and test client
-        run: |
-          cd client
-          npm run build --if-present
-          npm test

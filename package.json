@@ -1,0 +1,21 @@
+{
+    "name": "apds_banking",
+    "version": "1.0.0",
+    "description": "Welcome to the APDS Banking Platform, a **Secure Transaction Management System** designed with robust security measures at every layer. This README provides a comprehensive overview of the application’s security features, system architecture, core functionality, and instructions on how to pull and run the project locally.",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "lint": "eslint .",
+        "format": "prettier --check .",
+        "audit": "npm audit"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@eslint/js": "^9.19.0",
+        "eslint": "^9.19.0",
+        "eslint-plugin-react": "^7.37.4",
+        "globals": "^15.14.0"
+    }
+}

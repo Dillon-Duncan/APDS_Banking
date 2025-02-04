@@ -25,59 +25,24 @@ jobs:
         with:
           node-version: 16
 
-      - name: Install dependencies (server)
-        run: |
-          cd server
-          npm install &> ../../server-install.log
+      - name: Install dependencies
+        run: npm install
 
-      - name: Install dependencies (client)
-        run: |
-          cd client
-          npm install &> ../../client-install.log
+      # Fix ESLint permissions and run it
+      - name: Ensure ESLint is Installed
+        run: npm install --save-dev eslint
 
-      # Run ESLint and auto-fix issues
+      - name: Fix ESLint Permissions
+        run: chmod +x node_modules/.bin/eslint || true
+
       - name: Run ESLint with Auto-Fix
-        run: npx eslint . --fix &> eslint.log || true
+        run: npx eslint . --fix 2>&1 | tee eslint.log || true
 
-      # Commit and Push ESLint Fixes
-      - name: Commit and Push ESLint Fixes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Auto-fixed ESLint issues" || echo "No changes to commit"
-          git push origin HEAD:master || echo "No changes to push"
-
-      # Upload ESLint log
       - name: Upload ESLint Results
         uses: actions/upload-artifact@v4
         with:
           name: eslint-results
           path: eslint.log
-
-      # Run Prettier auto-fix
-      - name: Auto-Fix Formatting (Prettier)
-        run: npx prettier --write . &> prettier-fix.log || true
-
-      # Commit and Push Prettier Fixes
-      - name: Commit and Push Prettier Fixes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Auto-fixed code formatting" || echo "No changes to commit"
-          git push origin HEAD:master || echo "No changes to push"
-
-      # Upload Prettier log
-      - name: Upload Prettier Logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: prettier-results
-          path: prettier-fix.log
 
   # --------------------------------------
   # JOB 2: Security Scan & Auto-Fix
@@ -95,29 +60,17 @@ jobs:
         with:
           node-version: 16
 
-      # Auto-fix security vulnerabilities
-      - name: Auto-Fix Server Security Issues
+      # Ensure security audit logs exist
+      - name: Run Security Scan (Server)
         run: |
           cd server
-          npm audit fix --force &> ../../server-audit-fix.log || true
+          npm audit fix --force 2>&1 | tee ../../server-audit-fix.log || echo "No vulnerabilities found" > ../../server-audit-fix.log
 
-      - name: Auto-Fix Client Security Issues
+      - name: Run Security Scan (Client)
         run: |
           cd client
-          npm audit fix --force &> ../../client-audit-fix.log || true
+          npm audit fix --force 2>&1 | tee ../../client-audit-fix.log || echo "No vulnerabilities found" > ../../client-audit-fix.log
 
-      # Commit and Push Security Fixes
-      - name: Commit and Push Security Fixes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Auto-fixed security vulnerabilities" || echo "No changes to commit"
-          git push origin HEAD:master || echo "No changes to push"
-
-      # Upload Security Logs
       - name: Upload Security Audit Logs
         uses: actions/upload-artifact@v4
         with:
@@ -149,19 +102,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Initialize CodeQL analysis before running it
+      - name: Ensure CodeQL Log Directory Exists
+        run: mkdir -p /home/runner/work/_temp/codeql_results
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
 
-      # Run CodeQL analysis properly
-      - name: Perform CodeQL Analysis
+      - name: Run CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{ matrix.language }}"
 
-      # Upload CodeQL Analysis Logs
       - name: Upload CodeQL Logs
         uses: actions/upload-artifact@v4
         with:

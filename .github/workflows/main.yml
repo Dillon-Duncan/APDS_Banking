@@ -25,17 +25,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Clean npm cache and reinstall dependencies
-        run: |
-          rm -rf node_modules package-lock.json
-          npm cache clean --force
-          npm install
-
-      - name: Ensure ESLint is Installed
-        run: npm install --save-dev eslint
-
-      - name: Fix ESLint Permissions
-        run: chmod +x node_modules/.bin/eslint || true
+      - name: Install dependencies
+        run: npm install
 
       - name: Run ESLint with Auto-Fix
         run: npx --no-install eslint . --fix 2>&1 | tee eslint.log || true
@@ -65,22 +56,22 @@ jobs:
       - name: Run Security Scan (Server)
         run: |
           cd server
-          npm audit fix --force 2>&1 | tee ../../server-audit-fix.log
-          test -s ../../server-audit-fix.log || echo "No vulnerabilities found" > ../../server-audit-fix.log
+          npm audit fix --force 2>&1 | tee $GITHUB_WORKSPACE/server-audit-fix.log
+          test -s $GITHUB_WORKSPACE/server-audit-fix.log || echo "No vulnerabilities found" > $GITHUB_WORKSPACE/server-audit-fix.log
 
       - name: Run Security Scan (Client)
         run: |
           cd client
-          npm audit fix --force 2>&1 | tee ../../client-audit-fix.log
-          test -s ../../client-audit-fix.log || echo "No vulnerabilities found" > ../../client-audit-fix.log
+          npm audit fix --force 2>&1 | tee $GITHUB_WORKSPACE/client-audit-fix.log
+          test -s $GITHUB_WORKSPACE/client-audit-fix.log || echo "No vulnerabilities found" > $GITHUB_WORKSPACE/client-audit-fix.log
 
       - name: Upload Security Audit Logs
         uses: actions/upload-artifact@v4
         with:
           name: security-audit-results
           path: |
-            server-audit-fix.log
-            client-audit-fix.log
+            $GITHUB_WORKSPACE/server-audit-fix.log
+            $GITHUB_WORKSPACE/client-audit-fix.log
 
   # --------------------------------------
   # JOB 3: CodeQL Security Analysis 
@@ -106,20 +97,16 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Ensure CodeQL Log Directory Exists
-        run: mkdir -p /home/runner/work/_temp/codeql_results
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
+        run: mkdir -p $GITHUB_WORKSPACE/codeql_results
 
       - name: Run CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{ matrix.language }}"
+          output: $GITHUB_WORKSPACE/codeql_results
 
       - name: Upload CodeQL Logs
         uses: actions/upload-artifact@v4
         with:
           name: codeql-results
-          path: /home/runner/work/_temp/codeql_results
+          path: $GITHUB_WORKSPACE/codeql_results

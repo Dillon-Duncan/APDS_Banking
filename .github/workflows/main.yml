@@ -20,33 +20,40 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16  # Adjust version if needed
+          node-version: 16
 
       # Install dependencies for both server & client
       - name: Install dependencies (server)
         run: |
           cd server
-          npm install
+          npm install &> ../../server-install.log
 
       - name: Install dependencies (client)
         run: |
           cd client
-          npm install
+          npm install &> ../../client-install.log
 
       # Fix ESLint permissions issue
       - name: Fix ESLint Permissions
         run: chmod +x node_modules/.bin/eslint || true
 
-      # Run ESLint to check for code quality issues
+      # Run ESLint and save output to a log file
       - name: Run ESLint
-        run: npx eslint . || true  # '|| true' ensures the pipeline continues even if lint fails
+        run: npx eslint . &> eslint.log || true
+
+      # Upload ESLint results
+      - name: Upload Lint Logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: eslint-results
+          path: eslint.log
 
   # --------------------------------------
   # JOB 2: Security Scan (npm audit)
   # --------------------------------------
   security-scan:
     runs-on: ubuntu-latest
-    needs: build-and-lint  # Only runs after linting succeeds
+    needs: build-and-lint
 
     steps:
       - name: Checkout repository
@@ -57,23 +64,32 @@ jobs:
         with:
           node-version: 16
 
-      # Run npm audit on both client & server
+      # Run npm audit on both client & server, saving results
       - name: Audit server dependencies
         run: |
           cd server
-          npm audit --production || true  # Continue even if audit finds vulnerabilities
+          npm audit --production &> ../../server-audit.log || true
 
       - name: Audit client dependencies
         run: |
           cd client
-          npm audit --production || true  # Continue even if audit finds vulnerabilities
+          npm audit --production &> ../../client-audit.log || true
+
+      # Upload Security Audit Logs
+      - name: Upload Security Logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-audit-results
+          path: |
+            server-audit.log
+            client-audit.log
 
   # --------------------------------------
-  # JOB 3: CodeQL Security Analysis (Optional)
+  # JOB 3: CodeQL Security Analysis
   # --------------------------------------
   codeql-analysis:
     runs-on: ubuntu-latest
-    needs: security-scan  # Only runs after lint & security checks pass
+    needs: security-scan
     permissions:
       security-events: write
       contents: read
@@ -85,7 +101,7 @@ jobs:
       matrix:
         include:
           - language: javascript-typescript
-            build-mode: none  # Adjust if needed
+            build-mode: none
 
     steps:
       - name: Checkout repository
@@ -97,8 +113,15 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
-      # Run CodeQL analysis
+      # Run CodeQL analysis and save log
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        run: |
+          echo "Starting CodeQL Analysis..." > codeql.log
+          github/codeql-action/analyze@v3 &>> codeql.log
+
+      # Upload CodeQL Analysis Logs
+      - name: Upload CodeQL Logs
+        uses: actions/upload-artifact@v3
         with:
-          category: "/language:${{ matrix.language }}"
+          name: codeql-results
+          path: codeql.log

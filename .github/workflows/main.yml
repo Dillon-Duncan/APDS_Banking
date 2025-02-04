@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "Main" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "Main" ]
 
 permissions:
   contents: write  # Allows the workflow to push changes back to GitHub
